@@ -1,0 +1,46 @@
+services:
+  
+  # Database (Postgres, on port 5432)
+  postgres:
+    image: postgres:16.1
+    container_name: persistence-postgres
+    ports:
+      - 127.0.0.1:5432:5432
+    environment:
+      - POSTGRES_USER=persistence
+      - POSTGRES_PASSWORD=persistence
+      - POSTGRES_DB=persistence
+    volumes:
+      - ./postgres/:/docker-entrypoint-initdb.d/
+    networks:
+      - persistence-local
+
+  pgadmin:
+    container_name: persistence-pgadmin
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+      - PGADMIN_DEFAULT_PASSWORD=persistence
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+    ports:
+      - "8888:80"
+    volumes:
+      - ./pgadmin/:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - persistence-local
+
+  # Cache (Redis, on port 5379)
+  redis:
+    image: redis:7.2-alpine
+    container_name: persistence-redis
+    ports:
+      - 127.0.0.1:6379:6379
+    networks:
+      - persistence-local
+
+networks:
+  persistence-local:
+    name: persistence-local
